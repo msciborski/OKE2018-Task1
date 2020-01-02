@@ -1,64 +1,90 @@
 import nltk
 import rdflib
-from nltk.tag import StanfordNERTagger
-from nltk.internals import find_jars_within_path
-from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
+import argparse
+
+
+nltk.download('stopwords')
 
 graph = rdflib.Graph()
 
 
-def initialize_stanford_ner_tagger():
-    st = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz')
-    print(st._stanford_jar)
-    stanford_dir = st._stanford_jar.rpartition('/')[0]
-    stanford_jars = find_jars_within_path(stanford_dir)
-    print(":".join(stanford_jars))
-    st._stanford_jar = ':'.join(stanford_jars)
-    print(st._stanford_jar)
-
-    return st
+def get_argparse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', help='input text')
+    parser.add_argument('--output')
+    return vars(parser.parse_args())
 
 
 def tokenize_input(input):
-    return word_tokenize(input)
+    tokenizer = RegexpTokenizer(r'\w+')
+    return tokenizer.tokenize(input)
 
 
-def get_persons_places_organizations(input):
-    st = initialize_stanford_ner_tagger()
-    tokenized_input = tokenize_input(input)
-    classified_input = list(st.tag(tokenized_input))
-    return list(filter(lambda tup: tup[1] == 'LOCATION' or tup[1] == 'PERSON' or tup[1] == 'LOCATION', classified_input))
+def remove_stopwords(tokens):
+    stop_words = set(stopwords.words('english'))
+    return list(filter(lambda x: x not in stop_words, tokens))
+
+
+def get_series(tokens):
+    serie = ''
+    series = []
+    for token in tokens:
+        if token[0].isupper():
+            if serie == '':
+                serie = serie + token
+            else:
+                serie = serie + '_' + token
+        else:
+            if serie != '':
+                series += [serie]
+            series += [token]
+            serie = ''
+    return series
 
 
 def check_dbpedia(classified_input):
-    result = []
+    results = []
     person = rdflib.URIRef('http://dbpedia.org/ontology/Person')
     place = rdflib.URIRef('http://dbpedia.org/ontology/Place')
     organisation = rdflib.URIRef('http://dbpedia.org/ontology/Organisation')
 
     for word in classified_input:
-        resource = rdflib.URIRef(f"http://dbpedia.org/resource/Robert")
+        resource = rdflib.URIRef(f"http://dbpedia.org/resource/{word}")
         graph.value(resource, rdflib.RDFS.label)
         graph.load(resource)
+        word_results = []
         for subject, predicate, object_ in graph:
             if subject == resource and object_ in [person, place, organisation]:
-                result.append((word, subject, predicate, object_))
-    return result
+                word_results.append((subject, predicate, object_))
+        results.append((word, word_results))
+
+    return results
+
+
+def save_results(results, output):
+    print(results[0][1])
+    with open(output, 'w') as fp:
+        for result in results:
+            if result[1]:
+                fp.write(result[0] + ":\n")
+                fp.write('\n' + str(result[1][0][1]) + ' ' + str(result[1][0][2]) + ' ' + str(result[1][0][3]))
+            else:
+                fp.write(result[0] + ":\n")
 
 
 def main():
-    input = 'Florence May Harding studied at a school in Sydney, and with Douglas Robert Dundas, but in effect had no formal training in either botany or art.'
-    result = get_persons_places_organizations(input)
-    dbpedia_result = check_dbpedia(result)
-    print(dbpedia_result)
-    # st = initialize_stanford_ner_tagger()
-    # tokenized_input = tokenize_input(input)
-    # print('Tokenized', tokenized_input)
-    # classified_input = list(st.tag(tokenized_input))
-    # print('Classified input:', classified_input)
-    # print(type(classified_input[0]))
-    # print('Filtered input:', filtered_classified_input)
-    # filtered_classified_input = list(filter(lambda tup: tup[1] == 'LOCATION' or tup[1] == 'PERSON' or tup[1] == 'LOCATION', classified_input))
+    args = get_argparse_arguments()
+    input = args["input"]
+    output_path = args["output"]
+
+    tokenized_input = tokenize_input(input)
+    removed_stopwords = remove_stopwords(tokenized_input)
+    series = get_series(removed_stopwords) + removed_stopwords
+    dbpedia_results = check_dbpedia(series)
+
+    print(dbpedia_results)
 
 
 if __name__ == '__main__':
