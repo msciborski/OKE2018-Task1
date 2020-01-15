@@ -3,6 +3,7 @@ import rdflib
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 import argparse
+import json
 
 
 nltk.download('stopwords')
@@ -73,6 +74,9 @@ def save_results(results, output):
             else:
                 fp.write(result[0] + ":\n")
 
+def save_to_file_json(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
 
 def main():
     args = get_argparse_arguments()
@@ -86,6 +90,7 @@ def main():
 
     print(dbpedia_results)
 
+    save_to_file_json(dbpedia_results, 'dbpedia_results.json')
 
 if __name__ == '__main__':
     main()
