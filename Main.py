@@ -3,11 +3,15 @@ import rdflib
 from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 import argparse
+import json
+import unidecode
 
 
 nltk.download('stopwords')
 
 graph = rdflib.Graph()
+
+
 
 
 def get_argparse_arguments():
@@ -41,6 +45,10 @@ def get_series(tokens):
                 series += [serie]
             series += [token]
             serie = ''
+
+    if serie != '':
+        series.append(serie)
+
     return series
 
 
@@ -63,28 +71,22 @@ def check_dbpedia(classified_input):
     return results
 
 
-def save_results(results, output):
-    print(results[0][1])
-    with open(output, 'w') as fp:
-        for result in results:
-            if result[1]:
-                fp.write(result[0] + ":\n")
-                fp.write('\n' + str(result[1][0][1]) + ' ' + str(result[1][0][2]) + ' ' + str(result[1][0][3]))
-            else:
-                fp.write(result[0] + ":\n")
+def save_to_file_json(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
 
 
 def main():
     args = get_argparse_arguments()
-    input = args["input"]
+    input = unidecode.unidecode(args["input"])
     output_path = args["output"]
 
     tokenized_input = tokenize_input(input)
-    removed_stopwords = remove_stopwords(tokenized_input)
-    series = get_series(removed_stopwords) + removed_stopwords
+    series = get_series(tokenized_input)
     dbpedia_results = check_dbpedia(series)
 
-    print(dbpedia_results)
+    if output_path != '':
+        save_to_file_json(dbpedia_results, output_path)
 
 
 if __name__ == '__main__':
