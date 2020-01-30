@@ -5,7 +5,8 @@ This task is limited to three DBpedia ontology classes (Person, Place, Organisat
 
 ## Our algorithm:
 For our solution we used python with nltk and rdflib library. We are tokenizing sentence, then remove punctunation. Next step is to concantante words into series. Series contains words which starts from capital letter, for example: 
-- Michal Sciborski lives in Poznan -> ['Michal_Sciborski', 'lives', 'in', 'Poznan']. 
+- Michal Sciborski lives in Poznan -> ['Michal_Sciborski', 'lives', 'in', 'Poznan'].
+<!-- end of the list -->
 After creating series, we are doing request to dbpedia using rdflib library. 
 
 # Team Responsibilities
