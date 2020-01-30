@@ -25,7 +25,7 @@ pyton Main.py input "text" --output "path"
 Our solution worked for first quries, but doesn't work good for next. The biggest problem was to create series for sentences like:
 'At University of Technology...', because our algorithm returns ['At_Univeristy', 'of', 'Technology'...]. We learned how to use nltk for parsing sentence. In first approach we used StanfordNER tagger for tagging words, but result was not satisfying.
 
-Michael Jackson and Donald Trump never met in New York.
+>Michael Jackson and Donald Trump never met in New York.
  
 [["Michael_Jackson", [["http://dbpedia.org/resource/Michael_Jackson", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://dbpedia.org/ontology/Person"]]], ["and", []], ["Donald_Trump", [["http://dbpedia.org/resource/Donald_Trump", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://dbpedia.org/ontology/Person"]]], ["never", []], ["met", []], ["in", []]]
  
