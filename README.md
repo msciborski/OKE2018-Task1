@@ -14,9 +14,13 @@ After creating series, we are doing request to dbpedia using rdflib library.
 - Bartosz Więckowski - algorithm for creating series
 - Agata Błachowiak - CLI, nltk
 
-# CLI
+# CLI:
 pyton Main.py input "text" --output "path"
 
 ## Arguments:
 - input - text for parsing and checking in dbpedia
 - output - optional parametr. If not provided, result is printed in console. 
+
+# Results:
+Our solution worked for first quries, but doesn't work good for next. The biggest problem was to create series for sentences like:
+'At University of Technology...', because our algorithm returns ['At_Univeristy', 'of', 'Technology'...]. We learned how to use nltk for parsing sentence. In first approach we used StanfordNER tagger for tagging words, but result was not satisfying.
